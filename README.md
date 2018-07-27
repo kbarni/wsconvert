@@ -23,12 +23,12 @@ This utility, written in *Python3* makes a basic conversion from *WordStar* docu
 usage: `python3 wsconvert.py [-h] [-o OUTPUT] [-t] ws_file`
 
 Required arguments:
-> ws_file               the WordStar file to convert
+- ws_file               the WordStar file to convert
 
 Optional arguments:
-> -h, --help -- show this help message and exit
-> -o OUTPUT, --output OUTPUT -- output file name
-> -t, --textmode -- output to unformatted (text) file
+- -h, --help -- show this help message and exit
+- -o OUTPUT, --output OUTPUT -- output file name
+- -t, --textmode -- output to unformatted (text) file
 
 ## Why Markdown
 
