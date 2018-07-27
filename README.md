@@ -4,9 +4,11 @@ This is a simple conversion utility written in Python to convert documents creat
 
 ## Introduction
 
-**Wordstar**, one of the most used word processor of the '80s, is still considered a very capable word processor, with focus on writing, no distractions, no breaks in the flow of writing. Some writers still use it as a main tool for writing.
+ [**Wordstar**](https://en.wikipedia.org/wiki/WordStar), one of the most used word processor of the '80s, is still considered a very capable word processor, with focus on writing, no distractions, no breaks in the flow of writing. Some writers still use it as a main tool for writing. Its keyboard shortcuts are still available as plugins for several text editors and word processors.
 
 If you would like to try it, it can be run in a DosBox virtual machine. You can find a copy on Dos abandonware websites. I prefer version 5.5, as it automatically reflows the text as you write and has complete document style settings using the dot commands.
+
+![WordStar interface](wordstar.jpg)
 
 As WordStar was totally abandoned in the Windows era, currently no complete conversion utility exists to read or convert WordStar documents.
 
