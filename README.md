@@ -1,6 +1,6 @@
 # Simple Wordstar to Markdown converter
 
-This is a simple conversion utility written in Python to convert documents created with the WordStar word processor to more modern formats.
+This is a simple conversion utility written in Python to convert documents created with the *WordStar* word processor to more modern formats.
 
 ## Introduction
 
@@ -26,17 +26,17 @@ Required arguments:
 - ws_file               the WordStar file to convert
 
 Optional arguments:
-- -h, --help -- show this help message and exit
-- -o OUTPUT, --output OUTPUT -- output file name
-- -t, --textmode -- output to unformatted (text) file
+- -h, --help : show this help message and exit
+- -o OUTPUT, --output OUTPUT : output file name
+- -t, --textmode : output to unformatted (text) file
 
 ## Why Markdown
 
 Markdown is an easy to understand file format. It can be easily edited manually. It's also simple to generate.
 
-The **Pandoc** utility can convert Markdown to most document formats: docx, pdf, epub, latex... This utility uses some Pandoc specific markdown features (superscript, subscript, footnote...) that might not be recognized by some converters
+The **Pandoc** utility can convert Markdown to most document formats: *docx*, *pdf*, *epub*, *latex*... This utility uses some Pandoc specific markdown features (superscript, subscript, footnote...) that might not be recognized by some converters
 
-Markdown can also be used directly in several webpages (Github, Medium etc.)
+Markdown can also be used directly in several webpages (*Github*, *Medium* etc.)
 
 ## Features and bugs
 
