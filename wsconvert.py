@@ -5,7 +5,8 @@ import argparse
 
 def specialchars(x):
     return {
-        0x0D : 0x0A, #New line
+        0x0D : 0,    # skip newline handling
+        0x0A : 0,
         0x19 : 0x2A, #italic
         0x13 : 0x2A, #underline->italic
         0x02 : 0x2A, #bold
@@ -18,20 +19,30 @@ def handleblock(block):
     # implement here the handling of the blocks
     # block[0] is the length of the block (int)
     # block[2] is the command
-    if block[2]==0x03:
+    if block[2] == 0x03: # footer
         footerdata = converttext(block[20:]).replace(b'\n',b'')
-        return b'^['+footerdata+b']' 
+        return b'^['+footerdata+b']'
+    elif block[2] == 0x09: # TAB
+        return b'    '
+    elif block[2] == 0x11: # paragraph style
+        if block[3] == 0x02: # header
+            return b'## '
+        elif block[3]== 0x05: #title
+            return b'# '
     return b''
 
 def converttext(data):
     counter=-1
     newline = False
-    dotline = False
+    linetype = 0
     outdata=bytearray()
     while counter<len(data)-1:
         counter+=1
+        # End of file character
+        if data[counter] == 0x1A:
+            break
         # Extended character
-        if data[counter]==0x1B:
+        elif data[counter]==0x1B:
             outdata.append(data[counter+1])
             counter += 2
         # Symmetrical sequence: 1Dh special character
@@ -41,22 +52,24 @@ def converttext(data):
                 outdata += (handleblock(data[counter+1:counter+jump]))
             counter += jump+2
         elif data[counter]<0x20:    # special formatting characters
-            if not args.textmode:
-                c=specialchars(data[counter])
-                if not c==0:
-                    outdata.append(c)
-                if data[counter]==0x02 or data[counter]==0x18:
-                    outdata.append(c)   # duplicating some characters
-            if data[counter]==0x0D: # handle newline to check dot commands
-                outdata.append(0x0A)
+            if data[counter] == 0x0D and not newline:
+                outdata += b'\x0D\x0A\x0D\x0A'
                 newline = True
-                dotline = False
+                linetype = 0
+            if not args.textmode:   # handle formatting for markdown
+                c=specialchars(data[counter])
+                if not c == 0:
+                    outdata.append(c)
+                if data[counter] == 0x02 or data[counter] == 0x18:
+                    outdata.append(c)   # duplicating some characters ** and ~~
         elif data[counter]<0x80:    # other characters
             if newline:
                 newline = False
-                if data[counter]==0x2E:
-                    dotline = True
-            if not dotline:
+                if data[counter] == 0x2E: # dotline
+                    linetype = 1
+                if data[counter] == 0x2D: # special line (list)
+                    outdata.pop()
+            if linetype != 1: # we are in a dotline => ignore it
                 outdata.append(data[counter])
     return outdata
 
@@ -88,6 +101,6 @@ outdata = converttext(data)
 
 # Now decode the extended ascii data...
 outstring=outdata.decode("cp437")
-with open(outfilename,"wt") as outfile:
+with open(outputfile,"wt") as outfile:
     outfile.write(outstring)
-print("Conversion ready, "+outfilename+" written!")
+print("Conversion ready, "+outputfile+" written!")

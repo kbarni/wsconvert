@@ -51,15 +51,15 @@ In Markdown most of the formatting is handled by the output styles, not the docu
 **Features:**
 
 - WordStar specific data (dot commands and symmetric blocks) is stripped from the document
-- Special character handling
+- Special character handling (like accents)
 - Text formatting (**bold**, *italic*, underline, strikethrough, superscript, subscript, etc).
+- Paragraph style handling (title=>#, heading=>##)
+- Tabs converted to 4 spaces
 - Footnotes and endnotes are handled (transformed into markdown style footnotes)
 
 **Still to do:**
 
-- Convert TABs to 4 spaces (useful for indented blocks: code, list)
 - Smart newline handling (don't add empty lines to lists and codeblocks)
-- Interpret paragraph styles (<Title>, <Body text>...)
 - Transfer some useful dot commands:
     - `..` comment
     - `.df`, `.fi` insert data/text file
