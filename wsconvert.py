@@ -67,8 +67,8 @@ def converttext(data):
                 newline = False
                 if data[counter] == 0x2E: # dotline
                     linetype = 1
-                if data[counter] == 0x2D: # special line (list)
-                    outdata.pop()
+                #if data[counter] == 0x2D: # special line (list)
+                #    outdata.pop()
             if linetype != 1: # we are in a dotline => ignore it
                 outdata.append(data[counter])
     return outdata
