@@ -71,6 +71,8 @@ def converttext(data):
                 #    outdata.pop()
             if linetype != 1: # we are in a dotline => ignore it
                 outdata.append(data[counter])
+        elif data[counter]<0xFF:
+            outdata.append(data[counter] - 0x80)
     return outdata
 
 print("Basic WordStar to Markdown converter")
