@@ -53,7 +53,8 @@ def converttext(data):
             counter += jump+2
         elif data[counter]<0x20:    # special formatting characters
             if data[counter] == 0x0D and not newline:
-                outdata += b'\x0D\x0A\x0D\x0A'
+                if linetype==0:
+                    outdata += b'\x0D\x0A\x0D\x0A'
                 newline = True
                 linetype = 0
             if not args.textmode:   # handle formatting for markdown
