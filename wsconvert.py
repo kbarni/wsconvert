@@ -33,7 +33,7 @@ def handleblock(block):
 
 def converttext(data):
     counter=-1
-    newline = False
+    newline = True
     linetype = 0
     outdata=bytearray()
     while counter<len(data)-1:
