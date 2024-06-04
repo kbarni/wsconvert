@@ -42,7 +42,7 @@ def converttext(data):
         if data[counter] == 0x1A:
             break
         # Extended character
-        elif data[counter]==0x1B:
+        elif data[counter]==0x1B or data[counter]==0x1B+0x80:
             outdata.append(data[counter+1])
             counter += 2
         # Symmetrical sequence: 1Dh special character
