@@ -91,7 +91,7 @@ if args.output:
 else:
     extension = ".txt" if args.textmode else ".md"
     pp=args.ws_file.find('.')
-    outfilename=args.ws_file[0:pp]+extension
+    outputfile=args.ws_file[0:pp]+extension
 
 #Read file
 print("Reading "+args.ws_file)
