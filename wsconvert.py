@@ -2,7 +2,11 @@
 
 import sys
 import argparse
+import re
 
+HEADING_RE = re.compile(r"^#+ ")
+
+HEADING=""
 def specialchars(x):
     return {
         0x0D : 0,    # skip newline handling
@@ -36,6 +40,7 @@ def converttext(data):
     newline = False
     linetype = 0
     outdata=bytearray()
+    global HEADING
     while counter<len(data)-1:
         counter+=1
         # End of file character
@@ -50,6 +55,9 @@ def converttext(data):
             jump=int.from_bytes(data[counter+1:counter+2],byteorder='little')
             if not args.textmode:
                 outdata += (handleblock(data[counter+1:counter+jump]))
+                if len(outdata) > 2:
+
+                   HEADING=outdata.decode("cp437").split(" ",1)[-1]
             counter += jump+2
         elif data[counter]<0x20:    # special formatting characters
             if data[counter] == 0x0D and not newline:
@@ -104,6 +112,8 @@ with open(args.ws_file,"rb") as infile:
 print("Converting...");
 outdata = converttext(data)
 
+if HEADING and not args.output:
+   outputfile=f"{HEADING.strip()}.md"
 # Now decode the extended ascii data...
 outstring=outdata.decode("cp437")
 with open(outputfile,"wt", newline='\n') as outfile:
