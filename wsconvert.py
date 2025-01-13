@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 
 import sys
 import argparse
@@ -54,7 +54,8 @@ def converttext(data):
         elif data[counter]<0x20:    # special formatting characters
             if data[counter] == 0x0D and not newline:
                 if linetype==0:
-                    outdata += b'\x0D\x0A\x0D\x0A'
+                   outdata += b'\x0A\x0A'
+
                 newline = True
                 linetype = 0
             if not args.textmode:   # handle formatting for markdown
@@ -63,6 +64,7 @@ def converttext(data):
                     outdata.append(c)
                 if data[counter] == 0x02 or data[counter] == 0x18:
                     outdata.append(c)   # duplicating some characters ** and ~~
+
         elif data[counter]<0x80:    # other characters
             if newline:
                 newline = False
@@ -104,6 +106,6 @@ outdata = converttext(data)
 
 # Now decode the extended ascii data...
 outstring=outdata.decode("cp437")
-with open(outputfile,"wt") as outfile:
-    outfile.write(outstring)
+with open(outputfile,"wt", newline='\n') as outfile:
+    outfile.write(outstring.replace("\x0D",""))
 print("Conversion ready, "+outputfile+" written!")
