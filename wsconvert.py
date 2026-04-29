@@ -77,9 +77,9 @@ def converttext(data):
             counter += 2
         # Symmetrical sequence: 1Dh special character
         elif data[counter]==0x1D:
-            jump=int.from_bytes(data[counter+1:counter+2],byteorder='little')
+            jump=int.from_bytes(data[counter+1:counter+3],byteorder='little')
             if not args.textmode:
-                outdata += (handleblock(data[counter+1:counter+jump]))
+                outdata += (handleblock(data[counter+1:counter+3+jump]))
                 if len(outdata) > 2:
                    HEADING=outdata.decode("cp437").split(" ",1)[-1]
             counter += jump+2
