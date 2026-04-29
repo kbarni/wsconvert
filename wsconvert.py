@@ -1,8 +1,12 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 
 import sys
 import argparse
+import re
 
+HEADING_RE = re.compile(r"^#+ ")
+
+HEADING=""
 def specialchars(x):
     return {
         0x0D : 0,    # skip newline handling
@@ -36,6 +40,7 @@ def converttext(data):
     newline = False
     linetype = 0
     outdata=bytearray()
+    global HEADING
     while counter<len(data)-1:
         counter+=1
         # End of file character
@@ -50,11 +55,15 @@ def converttext(data):
             jump=int.from_bytes(data[counter+1:counter+2],byteorder='little')
             if not args.textmode:
                 outdata += (handleblock(data[counter+1:counter+jump]))
+                if len(outdata) > 2:
+
+                   HEADING=outdata.decode("cp437").split(" ",1)[-1]
             counter += jump+2
         elif data[counter]<0x20:    # special formatting characters
             if data[counter] == 0x0D and not newline:
                 if linetype==0:
-                    outdata += b'\x0D\x0A\x0D\x0A'
+                   outdata += b'\x0A\x0A'
+
                 newline = True
                 linetype = 0
             if not args.textmode:   # handle formatting for markdown
@@ -63,6 +72,7 @@ def converttext(data):
                     outdata.append(c)
                 if data[counter] == 0x02 or data[counter] == 0x18:
                     outdata.append(c)   # duplicating some characters ** and ~~
+
         elif data[counter]<0x80:    # other characters
             if newline:
                 newline = False
@@ -102,8 +112,10 @@ with open(args.ws_file,"rb") as infile:
 print("Converting...");
 outdata = converttext(data)
 
+if HEADING and not args.output:
+   outputfile=f"{HEADING.strip()}.md"
 # Now decode the extended ascii data...
 outstring=outdata.decode("cp437")
-with open(outputfile,"wt") as outfile:
-    outfile.write(outstring)
+with open(outputfile,"wt", newline='\n') as outfile:
+    outfile.write(outstring.replace("\x0D",""))
 print("Conversion ready, "+outputfile+" written!")
