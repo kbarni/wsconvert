@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
 
+import os
 import sys
 import argparse
 import re
 
 HEADING_RE = re.compile(r"^#+ ")
 
-HEADING=""
+HEADING = ""
+
 def specialchars(x):
     return {
         0x0D : 0,    # skip newline handling
@@ -21,7 +23,7 @@ def specialchars(x):
         0x18 : 0x7E, #strikethrough
         0x1E : 0,    #inactive soft hyphen: strip
         0x1F : 0x2D  #active soft hyphen
-    }.get(x,0)
+    }.get(x, 0)
 
 def process_dotline(buf):
     """Emit markdown for a buffered dot command line (buf includes the leading dot)."""
@@ -30,18 +32,18 @@ def process_dotline(buf):
         return b'\n---\n'
     return b''
 
-def handleblock(block):
+def handleblock(block, textmode=False):
     # block[0] is the length of the block (int)
     # block[2] is the command type
     if block[2] == 0x03: # footnote
-        notedata = converttext(block[20:]).replace(b'\n',b'')
-        return b'^['+notedata+b']'
+        notedata = converttext(block[20:], textmode).replace(b'\n', b'')
+        return b'^[' + notedata + b']'
     elif block[2] == 0x04: # endnote
-        notedata = converttext(block[20:]).replace(b'\n',b'')
-        return b'^['+notedata+b']'
+        notedata = converttext(block[20:], textmode).replace(b'\n', b'')
+        return b'^[' + notedata + b']'
     elif block[2] == 0x05: # annotation
-        annotdata = converttext(block[20:]).replace(b'\n',b'')
-        return b'<!-- '+annotdata+b' -->'
+        annotdata = converttext(block[20:], textmode).replace(b'\n', b'')
+        return b'<!-- ' + annotdata + b' -->'
     elif block[2] == 0x06: # comment: strip
         return b''
     elif block[2] == 0x09: # TAB
@@ -59,49 +61,48 @@ def handleblock(block):
             return b'# '
     return b''
 
-def converttext(data):
-    counter=-1
+def converttext(data, textmode=False):
+    counter = -1
     newline = False
     linetype = 0
     dotline_buf = bytearray()
-    outdata=bytearray()
+    outdata = bytearray()
     global HEADING
-    while counter<len(data)-1:
-        counter+=1
+    while counter < len(data) - 1:
+        counter += 1
         # End of file character
         if data[counter] == 0x1A:
             break
         # Extended character
-        elif data[counter]==0x1B:
-            outdata.append(data[counter+1])
+        elif data[counter] == 0x1B:
+            outdata.append(data[counter + 1])
             counter += 2
         # Symmetrical sequence: 1Dh special character
-        elif data[counter]==0x1D:
-            jump=int.from_bytes(data[counter+1:counter+3],byteorder='little')
-            if not args.textmode:
-                outdata += (handleblock(data[counter+1:counter+3+jump]))
+        elif data[counter] == 0x1D:
+            jump = int.from_bytes(data[counter + 1:counter + 3], byteorder='little')
+            if not textmode:
+                outdata += handleblock(data[counter + 1:counter + 3 + jump], textmode)
                 if len(outdata) > 2:
-                   HEADING=outdata.decode("cp437").split(" ",1)[-1]
-            counter += jump+2
-        elif data[counter]<0x20:    # special formatting characters
+                    HEADING = outdata.decode("cp437").split(" ", 1)[-1]
+            counter += jump + 2
+        elif data[counter] < 0x20:    # special formatting characters
             if data[counter] == 0x0D and not newline:
                 if linetype == 0:
                     outdata += b'\x0A\x0A'
-                elif linetype == 1 and not args.textmode:
+                elif linetype == 1 and not textmode:
                     outdata += process_dotline(dotline_buf)
                     dotline_buf = bytearray()
                 newline = True
                 linetype = 0
-            elif data[counter] == 0x0C and not args.textmode: # form feed -> horizontal rule
+            elif data[counter] == 0x0C and not textmode: # form feed -> horizontal rule
                 outdata += b'\n---\n'
-            if not args.textmode:   # handle formatting for markdown
-                c=specialchars(data[counter])
-                if not c == 0:
+            if not textmode:   # handle formatting for markdown
+                c = specialchars(data[counter])
+                if c != 0:
                     outdata.append(c)
                 if data[counter] in (0x02, 0x04, 0x18):
                     outdata.append(c)   # duplicating ** and ~~
-
-        elif data[counter]<0x80:    # other characters
+        elif data[counter] < 0x80:    # other characters
             if newline:
                 newline = False
                 if data[counter] == 0x2E: # dotline
@@ -115,40 +116,43 @@ def converttext(data):
                 outdata.append(data[counter])
         elif data[counter] == 0x8D: # soft return (word-wrap line break)
             outdata.append(0x0A)
-        elif data[counter]<0xFF:
+        elif data[counter] < 0xFF:
             outdata.append(data[counter] - 0x80)
     return outdata
 
-print("Basic WordStar to Markdown converter")
-print("====================================")
-# Argument parsing
-parser = argparse.ArgumentParser()
-parser.add_argument("ws_file",help="the WordStar file to convert")
-parser.add_argument("-o","--output", help="output file name")
-parser.add_argument("-t","--textmode", help="output to unformatted (text) file",
-                    action="store_true")
-args = parser.parse_args()
+def main():
+    global HEADING
+    print("Basic WordStar to Markdown converter")
+    print("====================================")
 
-if args.output:
-    outputfile = args.output
-else:
-    extension = ".txt" if args.textmode else ".md"
-    pp=args.ws_file.find('.')
-    outputfile=args.ws_file[0:pp]+extension
+    parser = argparse.ArgumentParser()
+    parser.add_argument("ws_file", help="the WordStar file to convert")
+    parser.add_argument("-o", "--output", help="output file name")
+    parser.add_argument("-t", "--textmode", help="output to unformatted (text) file",
+                        action="store_true")
+    args = parser.parse_args()
 
-#Read file
-print("Reading "+args.ws_file)
-with open(args.ws_file,"rb") as infile:
-    data=infile.read()
+    if args.output:
+        outputfile = args.output
+    else:
+        extension = ".txt" if args.textmode else ".md"
+        base, _ = os.path.splitext(args.ws_file)
+        outputfile = base + extension
 
-# Let's go through the file for some cleanup...
-print("Converting...");
-outdata = converttext(data)
+    print("Reading " + args.ws_file)
+    with open(args.ws_file, "rb") as infile:
+        data = infile.read()
 
-if HEADING and not args.output:
-   outputfile=f"{HEADING.strip()}.md"
-# Now decode the extended ascii data...
-outstring=outdata.decode("cp437")
-with open(outputfile,"wt", newline='\n') as outfile:
-    outfile.write(outstring.replace("\x0D",""))
-print("Conversion ready, "+outputfile+" written!")
+    print("Converting...")
+    outdata = converttext(data, args.textmode)
+
+    if HEADING and not args.output:
+        outputfile = f"{HEADING.strip()}.md"
+
+    outstring = outdata.decode("cp437")
+    with open(outputfile, "wt", newline='\n') as outfile:
+        outfile.write(outstring.replace("\x0D", ""))
+    print("Conversion ready, " + outputfile + " written!")
+
+if __name__ == '__main__':
+    main()
