@@ -75,6 +75,8 @@ def converttext(data, textmode=False):
             break
         # Extended character
         elif data[counter] == 0x1B:
+            if counter + 1 >= len(data):
+                break
             outdata.append(data[counter + 1])
             counter += 2
         # Symmetrical sequence: 1Dh special character
